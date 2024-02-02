@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/cosmodesi/folpsax/blob/main/folps_logo.png" width="700" height="200">
+    <img src="https://github.com/cosmodesi/folpsax/blob/main/folpsax_logo.png" width="700" height="200">
 </p>
 
 # FOLPSν in jax: folpsax
@@ -13,9 +13,8 @@ FOLPSν is a Python code that computes the galaxy redshift space power spectrum 
 
 - [Hernán E. Noriega](mailto:henoriega@estudiantes.fisica.unam.mx)
 - [Alejandro Aviles](mailto:avilescervantes@gmail.com)
-- Arnaud de Mattia
+- [Arnaud de Mattia](https://github.com/adematti)
 
-*Special thanks to other people who have tested this code*: Sebastien Fromenteau, Mariana Vargas-Magaña, Arnaud de Mattia, Gerardo Morales Navarrete
 
 
 ## Requirements
