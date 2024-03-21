@@ -12,7 +12,7 @@ from .jax import interp, simpson, legendre
 import numpy as np
 from scipy import special
 
-from jax.config import config; config.update('jax_enable_x64', True)
+from jax import config; config.update('jax_enable_x64', True)
 
 
 """
@@ -39,7 +39,7 @@ def get_mmatrices(nfftlog=128):
 
     #Eq.~ 4.19 at arXiv:2208.02791
     def Imatrix(nu1, nu2):
-        return 1 / (8 * jnp.pi**(3 / 2.)) * (special.gamma(3 / 2. - nu1) * special.gamma(3 / 2. - nu2) * special.gamma(nu1 + nu2 - 3 / 2.))\
+        return 1 / (8 * np.pi**(3 / 2.)) * (special.gamma(3 / 2. - nu1) * special.gamma(3 / 2. - nu2) * special.gamma(nu1 + nu2 - 3 / 2.))\
                 / (special.gamma(nu1) * special.gamma(nu2) * special.gamma(3 - nu1 - nu2))
 
     # M22-type
@@ -146,32 +146,32 @@ def get_mmatrices(nfftlog=128):
 
         #Overdensity and velocity
         def M13_dd(nu1):
-            return ((1+9*nu1)/4) * jnp.tan(nu1*jnp.pi)/( 28*jnp.pi*(nu1+1)*nu1*(nu1-1)*(nu1-2)*(nu1-3) )
+            return ((1+9*nu1)/4) * np.tan(nu1*np.pi)/(28*np.pi*(nu1+1)*nu1*(nu1-1)*(nu1-2)*(nu1-3) )
 
         def M13_dt_fk(nu1):
-            return ((-7+9*nu1)*jnp.tan(nu1*jnp.pi))/(112*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
+            return ((-7+9*nu1)*np.tan(nu1*np.pi))/(112*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
 
         def M13_tt_fk(nu1):
-            return -(jnp.tan(nu1*jnp.pi)/(14*jnp.pi*(-3 + nu1)*(-2 + nu1)*(-1 + nu1)*nu1*(1 + nu1) ))
+            return -(np.tan(nu1*np.pi)/(14*np.pi*(-3 + nu1)*(-2 + nu1)*(-1 + nu1)*nu1*(1 + nu1) ))
 
         # A function
         def Mafk_11(nu1):
-            return ((15-7*nu1)*jnp.tan(nu1*jnp.pi))/(56*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1)
+            return ((15-7*nu1)*np.tan(nu1*np.pi))/(56*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1)
 
         def Mafp_11(nu1):
-            return ((-6+7*nu1)*jnp.tan(nu1*jnp.pi))/(56*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1)
+            return ((-6+7*nu1)*np.tan(nu1*np.pi))/(56*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1)
 
         def Mafkfp_12(nu1):
-            return (3*(-13+7*nu1)*jnp.tan(nu1*jnp.pi))/(224*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
+            return (3*(-13+7*nu1)*np.tan(nu1*np.pi))/(224*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
 
         def Mafpfp_12(nu1):
-            return (3*(1-7*nu1)*jnp.tan(nu1*jnp.pi))/(224*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
+            return (3*(1-7*nu1)*np.tan(nu1*np.pi))/(224*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
 
         def Mafkfkfp_33(nu1):
-            return ((21+(53-28*nu1)*nu1)*jnp.tan(nu1*jnp.pi))/(224*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
+            return ((21+(53-28*nu1)*nu1)*np.tan(nu1*np.pi))/(224*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
 
         def Mafkfpfp_33(nu1):
-            return ((-21+nu1*(-17+28*nu1))*jnp.tan(nu1*jnp.pi))/(224*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
+            return ((-21+nu1*(-17+28*nu1))*np.tan(nu1*np.pi))/(224*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
 
 
         return (M13_dd(nu1), M13_dt_fk(nu1), M13_tt_fk(nu1), Mafk_11(nu1),  Mafp_11(nu1), Mafkfp_12(nu1),
@@ -182,7 +182,7 @@ def get_mmatrices(nfftlog=128):
     def M13bias(nu1):
 
         def Msigma23(nu1):
-            return (45*jnp.tan(nu1*jnp.pi))/(128*jnp.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
+            return (45*np.tan(nu1*np.pi))/(128*np.pi*(-3+nu1)*(-2+nu1)*(-1+nu1)*nu1*(1+nu1))
 
         return (Msigma23(nu1))
 
@@ -191,25 +191,25 @@ def get_mmatrices(nfftlog=128):
     def M22type(kmin, kmax, N, b_nu, M22):
 
         #nuT = -etaT/2, etaT = bias_nu + i*eta_m
-        jj = jnp.arange(N + 1)
-        nuT = -0.5 * (b_nu + (2*jnp.pi*1j/jnp.log(kmax/kmin)) * (jj - N/2) *(N-1)/(N))
+        jj = np.arange(N + 1)
+        nuT = -0.5 * (b_nu + (2*np.pi*1j/np.log(kmax/kmin)) * (jj - N/2) *(N-1)/(N))
 
         #reduce time x10 compared to "for" iterations
-        nuT_x, nuT_y = jnp.meshgrid(nuT, nuT)
+        nuT_x, nuT_y = np.meshgrid(nuT, nuT)
         M22matrix = M22(nuT_y, nuT_x)
 
-        return jnp.array(M22matrix)
+        return np.array(M22matrix)
 
 
     #Computation of M13-type matrices
     def M13type(kmin, kmax, N, b_nu, M13):
 
         #nuT = -etaT/2, etaT = bias_nu + i*eta_m
-        ii = jnp.arange(N + 1)
-        nuT = -0.5 * (b_nu + (2*jnp.pi*1j/jnp.log(kmax/kmin)) * (ii - N/2) *(N-1)/(N))
+        ii = np.arange(N + 1)
+        nuT = -0.5 * (b_nu + (2*np.pi*1j/np.log(kmax/kmin)) * (ii - N/2) *(N-1)/(N))
         M13vector = M13(nuT)
 
-        return jnp.array(M13vector)
+        return np.array(M13vector)
 
 
     #FFTLog bias for the biasing spectra Pb1b2,...
@@ -217,11 +217,11 @@ def get_mmatrices(nfftlog=128):
 
     M22T =  M22type(kmin, kmax, nfftlog, b_nu, M22)
     M22biasT = M22type(kmin, kmax, nfftlog, bnu_b, M22bias)
-    M22matrices = jnp.concatenate((M22T, M22biasT))
+    M22matrices = np.concatenate((M22T, M22biasT))
 
     M13T = M13type(kmin, kmax, nfftlog, b_nu, M13)
-    M13biasT = jnp.reshape(M13type(kmin, kmax, nfftlog, bnu_b, M13bias), (1, nfftlog + 1))
-    M13vectors = jnp.concatenate((M13T, M13biasT))
+    M13biasT = np.reshape(M13type(kmin, kmax, nfftlog, bnu_b, M13bias), (1, nfftlog + 1))
+    M13vectors = np.concatenate((M13T, M13biasT))
 
     return (M22matrices, M13vectors)
 
@@ -737,8 +737,8 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
     I3uuu_2 = Fkoverf0*P13overpkl[5]*pk_l + P22[14]
     I3uuu_3 = P13overpkl[6]*pk_l + P22[12]
 
-    I2uudd_1D = P22[15]; I2uudd_2D = P22[16]; I3uuud_2D = P22[17];
-    I3uuud_3D = P22[18]; I4uuuu_2D = P22[19]; I4uuuu_3D = P22[20];
+    I2uudd_1D = P22[15]; I2uudd_2D = P22[16]; I3uuud_2D = P22[17]
+    I3uuud_3D = P22[18]; I4uuuu_2D = P22[19]; I4uuuu_3D = P22[20]
     I4uuuu_4D = P22[21]
 
     TableOut = (kTout, pk_l, Fkoverf0, Ploop_dd, Ploop_dt, Ploop_tt,
@@ -825,7 +825,7 @@ def get_eft_pkmu(kev, mu, pars, table):
     Pdt_L = pkl*Fkoverf0; Ptt_L = pkl*Fkoverf0**2
 
     # one-loop power spectrum
-    Pdd = pkl + Ploop_dd; Pdt = Pdt_L + Ploop_dt; Ptt = Ptt_L + Ploop_tt;
+    #Pdd = pkl + Ploop_dd; Pdt = Pdt_L + Ploop_dt; Ptt = Ptt_L + Ploop_tt
 
     # biasing
     def PddXloop(b1, b2, bs2, b3nl):
@@ -876,11 +876,11 @@ def get_eft_pkmu(kev, mu, pars, table):
 
     # EFT counterterms
     def Pcts(mu, alpha0, alpha2, alpha4):
-        return (alpha0 + alpha2 * mu**2 + alpha4 * mu**4)*kev**2 * pkl
+        return (alpha0 + alpha2 * mu**2 + alpha4 * mu**4) * kev**2 * pkl
 
     # Stochastics noise
     def Pshot(mu, alphashot0, alphashot2, PshotP):
-        return PshotP*(alphashot0 + alphashot2 * (kev*mu)**2)
+        return PshotP * (alphashot0 + alphashot2 * (kev*mu)**2)
 
     return (PloopSPTs(mu, b1, b2, bs2, b3nl) + Pcts(mu, alpha0, alpha2, alpha4)
                 + PctNLOs(mu, b1, ctilde) + Pshot(mu, alphashot0, alphashot2, PshotP))

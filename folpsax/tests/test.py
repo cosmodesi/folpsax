@@ -189,6 +189,6 @@ def test_nowiggle():
 
 if __name__ == '__main__':
 
-    #test_folps()
+    test_folps()
     test_autodiff()
     #test_nowiggle()
