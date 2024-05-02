@@ -665,7 +665,7 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
         Fkoverf0 = jnp.ones(len(kTout), dtype='f8')
     else:
         inputfkT = f_over_f0_EH(kwargs['z'], inputpkT[0], kwargs['Omega_m'], kwargs['h'], kwargs['fnu'])
-        f0 = inputfkT[2]
+        f0 = kwargs.get('f0', inputfkT[2])
         Fkoverf0 = interp(kTout, inputfkT[0], inputfkT[1])
 
 
