@@ -322,7 +322,8 @@ def get_fnu(h, ombh2, omch2, omnuh2):
 
 
 def f_over_f0_EH(zev, k, OmM0, h, fnu):
-    '''Rutine to get f(k)/f0 and f0.
+    """
+    Routine to get f(k)/f0 and f0.
     f(k)/f0 is obtained following H&E (1998), arXiv:astro-ph/9710216
     f0 is obtained by solving directly the differential equation for the linear growth at large scales.
 
@@ -335,7 +336,7 @@ def f_over_f0_EH(zev, k, OmM0, h, fnu):
     Returns:
         f(k)/f0 (when 'EdSkernels = True' f(k)/f0 = 1)
         f0
-    '''
+    """
     eta = jnp.log(1 / (1 + zev))   #log of scale factor
     Neff = 3.046                   # effective number of neutrinos
     omrv = 2.469*10**(-5)/(h**2 * (1 + 7/8*(4/11)**(4/3)*Neff)) #rad: including neutrinos
@@ -348,10 +349,11 @@ def f_over_f0_EH(zev, k, OmM0, h, fnu):
     pf = (k * theta272)/(OmM0 * h**2)
     DEdS = jnp.exp(eta)/aeq                      #growth function: EdS cosmology
 
-    yFS = 17.2*fnu*(1 + 0.488*fnu**(-7/6))*(pf*Nnu/fnu)**2  #yFreeStreaming
+    fnunonzero = jnp.where(fnu != 0., fnu, 1.)
+    yFS = 17.2*fnu*(1 + 0.488*fnunonzero**(-7/6))*(pf*Nnu/fnunonzero)**2  #yFreeStreaming
+    # pcb = 0. and yFS = 0. when fnu = 0.
     rf = DEdS/(1 + yFS)
     fFit = 1 - pcb/(1 + (rf)**c)                #f(k)/f0
-
 
     #Getting f0
     def OmM(eta):
@@ -667,7 +669,6 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
         inputfkT = f_over_f0_EH(kwargs['z'], inputpkT[0], kwargs['Omega_m'], kwargs['h'], kwargs['fnu'])
         f0 = kwargs.get('f0', inputfkT[2])
         Fkoverf0 = interp(kTout, inputfkT[0], inputfkT[1])
-
 
     #Non-wiggle linear power spectrum
     if pknow is None:
