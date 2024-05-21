@@ -1,6 +1,10 @@
 import warnings
 from jax import numpy as jnp
+
 import interpax
+
+
+from jax import config; config.update('jax_enable_x64', True)
 
 
 def legendre(ell):

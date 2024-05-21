@@ -12,8 +12,6 @@ from .jax import interp, simpson, legendre
 import numpy as np
 from scipy import special
 
-from jax import config; config.update('jax_enable_x64', True)
-
 
 """
 def interp(k, x, y):
@@ -213,7 +211,7 @@ def get_mmatrices(nfftlog=128):
 
 
     #FFTLog bias for the biasing spectra Pb1b2,...
-    bnu_b = 15.1*b_nu
+    bnu_b = 15.1 * b_nu
 
     M22T =  M22type(kmin, kmax, nfftlog, b_nu, M22)
     M22biasT = M22type(kmin, kmax, nfftlog, bnu_b, M22bias)
@@ -462,17 +460,17 @@ def get_pknow(k, pk, h):
     mcutmin = 120; mcutmax = 240
 
     #Even
-    xEvenTcutmin = jnp.arange(1, mcutmin-1, 1)
-    xEvenTcutmax = jnp.arange(mcutmax+2, len(FSTlogkpkEvenT) + 1, 1)
-    EvenTcutmin = FSTlogkpkEvenT[0:mcutmin-2]
-    EvenTcutmax = FSTlogkpkEvenT[mcutmax+1:len(FSTlogkpkEvenT)]
+    xEvenTcutmin = jnp.arange(1, mcutmin - 1, 1)
+    xEvenTcutmax = jnp.arange(mcutmax + 2, len(FSTlogkpkEvenT) + 1, 1)
+    EvenTcutmin = FSTlogkpkEvenT[0:mcutmin - 2]
+    EvenTcutmax = FSTlogkpkEvenT[mcutmax + 1:len(FSTlogkpkEvenT)]
     xEvenTcuttedT = jnp.concatenate((xEvenTcutmin, xEvenTcutmax))
     nFSTlogkpkEvenTcuttedT = jnp.concatenate((EvenTcutmin, EvenTcutmax))
 
     #Odd
     xOddTcutmin = jnp.arange(1, mcutmin, 1)
-    xOddTcutmax = jnp.arange(mcutmax+1, len(FSTlogkpkEvenT) + 1, 1)
-    OddTcutmin = FSTlogkpkOddT[0:mcutmin-1]
+    xOddTcutmax = jnp.arange(mcutmax + 1, len(FSTlogkpkEvenT) + 1, 1)
+    OddTcutmin = FSTlogkpkOddT[0:mcutmin - 1]
     OddTcutmax = FSTlogkpkOddT[mcutmax:len(FSTlogkpkEvenT)]
     xOddTcuttedT = jnp.concatenate((xOddTcutmin, xOddTcutmax))
     nFSTlogkpkOddTcuttedT = jnp.concatenate((OddTcutmin, OddTcutmax))
@@ -480,7 +478,7 @@ def get_pknow(k, pk, h):
     #Interpolate the FST harmonics in the BAO range
     PreEvenT = interp(jnp.arange(2, mcutmax + 1, 1.), xEvenTcuttedT, nFSTlogkpkEvenTcuttedT)
     PreOddT = interp(jnp.arange(0, mcutmax - 1, 1.), xOddTcuttedT, nFSTlogkpkOddTcuttedT)
-    preT = jnp.column_stack([PreOddT[mcutmin:mcutmax-1], PreEvenT[mcutmin:mcutmax-1]]).ravel()
+    preT = jnp.column_stack([PreOddT[mcutmin:mcutmax - 1], PreEvenT[mcutmin:mcutmax - 1]]).ravel()
     preT = jnp.concatenate([FSTlogkpkT[:2 * mcutmin], preT, FSTlogkpkT[2 * mcutmax - 2:]])
 
     #Inverse Sine transf.
@@ -504,7 +502,7 @@ def get_pknow(k, pk, h):
     return(k, PNWkTot)
 
 
-def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, nk=120, kernels='eds', **kwargs):
+def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, nk=120, kernels='eds', sbao=104., **kwargs):
     """
     1-loop corrections to the linear power spectrum.
 
@@ -705,14 +703,14 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
     pk_l = interp(kTout, inputpkT[0], inputpkT[1])
     pk_l_NW = interp(kTout, inputpkT_NW[0], inputpkT_NW[1])
 
-    sigma2w = 1/(6 * jnp.pi**2) * simpson(inputpkTff[1], x=inputpkTff[0])
-    sigma2w_NW = 1/(6 * jnp.pi**2) * simpson(inputpkTff_NW[1], x=inputpkTff_NW[0])
+    sigma2w = 1 / (6 * jnp.pi**2) * simpson(inputpkTff[1], x=inputpkTff[0])
+    sigma2w_NW = 1 / (6 * jnp.pi**2) * simpson(inputpkTff_NW[1], x=inputpkTff_NW[0])
 
-    kbao = 1 / 104
+    #sbao = 104.
     p = np.geomspace(10**(-6), 0.4, num=100)
     PSL_NW = interp(p, inputpkT_NW[0], inputpkT_NW[1])
-    sigma2_NW = 1/(6 * jnp.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p/kbao) + 2 * special.spherical_jn(2, p/kbao)), x=p)
-    delta_sigma2_NW = 1/(2 * jnp.pi**2) * simpson(PSL_NW * special.spherical_jn(2, p/kbao), x=p)
+    sigma2_NW = 1 / (6 * jnp.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * sbao) + 2 * special.spherical_jn(2, p * sbao)), x=p)
+    delta_sigma2_NW = 1 / (2 * jnp.pi**2) * simpson(PSL_NW * special.spherical_jn(2, p * sbao), x=p)
 
     def remove_zerolag(k, pk):
         # Originally: interp(10**(-10), kTout, P22_NW[5])
