@@ -504,7 +504,7 @@ def get_pknow(k, pk, h):
     return(k, PNWkTot)
 
 
-def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, nk=120, kernels='eds', sbao=104., **kwargs):
+def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, nk=120, kernels='eds', rbao=104., **kwargs):
     """
     1-loop corrections to the linear power spectrum.
 
@@ -707,11 +707,11 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
     sigma2w = 1 / (6 * jnp.pi**2) * simpson(inputpkTff[1], x=inputpkTff[0])
     sigma2w_NW = 1 / (6 * jnp.pi**2) * simpson(inputpkTff_NW[1], x=inputpkTff_NW[0])
 
-    #sbao = 104.
+    #rbao = 104.
     p = np.geomspace(10**(-6), 0.4, num=100)
     PSL_NW = interp(p, inputpkT_NW[0], inputpkT_NW[1])
-    sigma2_NW = 1 / (6 * jnp.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * sbao) + 2 * special.spherical_jn(2, p * sbao)), x=p)
-    delta_sigma2_NW = 1 / (2 * jnp.pi**2) * simpson(PSL_NW * special.spherical_jn(2, p * sbao), x=p)
+    sigma2_NW = 1 / (6 * jnp.pi**2) * simpson(PSL_NW * (1 - special.spherical_jn(0, p * rbao) + 2 * special.spherical_jn(2, p * rbao)), x=p)
+    delta_sigma2_NW = 1 / (2 * jnp.pi**2) * simpson(PSL_NW * special.spherical_jn(2, p * rbao), x=p)
 
     def remove_zerolag(k, pk):
         # Originally: interp(10**(-10), kTout, P22_NW[5])
