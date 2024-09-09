@@ -319,7 +319,7 @@ def get_fnu(h, ombh2, omch2, omnuh2):
     return(h, OmM0, fnu, mnu)
 
 
-def f_over_f0_EH(zev, k, OmM0, h, fnu):
+def f_over_f0_EH(zev, k, OmM0, h, fnu, Nnu=3):
     """
     Routine to get f(k)/f0 and f0.
     f(k)/f0 is obtained following H&E (1998), arXiv:astro-ph/9710216
@@ -331,6 +331,7 @@ def f_over_f0_EH(zev, k, OmM0, h, fnu):
         OmM0: Omega_b + Omega_c + Omega_nu (dimensionless matter density parameter)
         h = H0/100
         fnu: Omega_nu/OmM0
+        Nnu: number of neutrinos
     Returns:
         f(k)/f0 (when 'EdSkernels = True' f(k)/f0 = 1)
         f0
@@ -342,7 +343,6 @@ def f_over_f0_EH(zev, k, OmM0, h, fnu):
 
     pcb = 5./4 - jnp.sqrt(1 + 24*(1 - fnu))/4     #neutrino supression
     c = 0.7
-    Nnu = 3                                     #number of neutrinos
     theta272 = (1.00)**2                        # T_{CMB} = 2.7*(theta272)
     pf = (k * theta272)/(OmM0 * h**2)
     DEdS = jnp.exp(eta)/aeq                      #growth function: EdS cosmology
@@ -664,7 +664,7 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
         f0 = kwargs['f0']
         Fkoverf0 = jnp.ones(len(kTout), dtype='f8')
     else:
-        inputfkT = f_over_f0_EH(kwargs['z'], inputpkT[0], kwargs['Omega_m'], kwargs['h'], kwargs['fnu'])
+        inputfkT = f_over_f0_EH(kwargs['z'], inputpkT[0], kwargs['Omega_m'], kwargs['h'], kwargs['fnu'], Nnu=kwargs.get('Nnu', 3))
         f0 = kwargs.get('f0', inputfkT[2])
         Fkoverf0 = interp(kTout, inputfkT[0], inputfkT[1])
 
