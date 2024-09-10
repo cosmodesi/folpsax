@@ -319,7 +319,7 @@ def get_fnu(h, ombh2, omch2, omnuh2):
     return(h, OmM0, fnu, mnu)
 
 
-def f_over_f0_EH(zev, k, OmM0, h, fnu, Nnu=3):
+def f_over_f0_EH(zev, k, OmM0, h, fnu, Nnu=3, Neff=3.044):
     """
     Routine to get f(k)/f0 and f0.
     f(k)/f0 is obtained following H&E (1998), arXiv:astro-ph/9710216
@@ -331,13 +331,13 @@ def f_over_f0_EH(zev, k, OmM0, h, fnu, Nnu=3):
         OmM0: Omega_b + Omega_c + Omega_nu (dimensionless matter density parameter)
         h = H0/100
         fnu: Omega_nu/OmM0
-        Nnu: number of neutrinos
+        Nnu: number of massive neutrinos
+        Neff: effective number of neutrinos
     Returns:
         f(k)/f0 (when 'EdSkernels = True' f(k)/f0 = 1)
         f0
     """
     eta = jnp.log(1 / (1 + zev))   #log of scale factor
-    Neff = 3.046                   # effective number of neutrinos
     omrv = 2.469*10**(-5)/(h**2 * (1 + 7/8*(4/11)**(4/3)*Neff)) #rad: including neutrinos
     aeq = omrv/OmM0           #matter-radiation equality
 
@@ -509,12 +509,10 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
     1-loop corrections to the linear power spectrum.
 
     Args:
-        If 'EdSkernels = True' (default: 'False', fk-kernels), EdS-kernels will be employed.
-        k, pklin: k-coordinates and linear power spectrum.
-        CosmoParams: Set of cosmological parameters [z_pk, omega_b, omega_cdm, omega_ncdm, h] in that order.
-                   z_pk: redshift.
-                   omega_i = omega_i = Omega_i h², where i=baryons (b), CDM (cdm), massive neutrinos (ncdm).
-                   h = H0/100.
+        k, pklin: k-coordinates and linear power spectrum of CDM + baryons.
+        kernels: 'eds', 'fk' to use fk-kernels
+        if fk-kernels, provide in kwargs either ['z', 'fnu': Omega_ncdm_tot / Omega_m, 'Omega_m', 'h', 'Nnu', 'Neff']
+        or velocity divergence power spectrum of CDM + baryons pkttlin.
     Returns:
         list of 1-loop contributions for the wiggle and non-wiggle (also computed here) linear power spectra.
     """
@@ -664,8 +662,14 @@ def get_non_linear(k, pklin, mmatrices, pknow=None, kminout=0.001, kmaxout=0.5, 
         f0 = kwargs['f0']
         Fkoverf0 = jnp.ones(len(kTout), dtype='f8')
     else:
-        inputfkT = f_over_f0_EH(kwargs['z'], inputpkT[0], kwargs['Omega_m'], kwargs['h'], kwargs['fnu'], Nnu=kwargs.get('Nnu', 3))
-        f0 = kwargs.get('f0', inputfkT[2])
+        if 'pkttlin' in kwargs:
+            inputfkT = list(extrapolate_pklin(k, kwargs['pkttlin']))
+            fk = (inputfkT[1] / inputpkT[1])**0.5
+            f0 = kwargs.get('f0', fk[0])
+            inputfkT = (inputfkT[0], fk / f0, f0)
+        else:
+            inputfkT = f_over_f0_EH(kwargs['z'], inputpkT[0], kwargs['Omega_m'], kwargs['h'], kwargs['fnu'], Neff=kwargs.get('Neff', 3.044), Nnu=kwargs.get('Nnu', 3))
+            f0 = kwargs.get('f0', inputfkT[2])
         Fkoverf0 = interp(kTout, inputfkT[0], inputfkT[1])
 
     #Non-wiggle linear power spectrum

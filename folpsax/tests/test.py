@@ -24,15 +24,16 @@ def test_folps():
     pars = [b1, b2, bs2, b3nl, alpha0, alpha2, alpha4, ctilde, alphashot0, alphashot2, PshotP]
 
     for m_ncdm in [0.1, 0.2]:
-        cosmo = DESI(m_ncdm=m_ncdm)
+        cosmo = DESI(m_ncdm=m_ncdm, neutrino_hierarchy='degenerate')
         fo = cosmo.get_fourier()
-        pk_interpolator = fo.pk_interpolator().to_1d(z=z_pk)
+        pk_interpolator_dd = fo.pk_interpolator(of='delta_cb').to_1d(z=z_pk)
+        pk_interpolator_tt = fo.pk_interpolator(of='theta_cb').to_1d(z=z_pk)
         klin = np.geomspace(1e-5, 10., 1000)
-        pklin = pk_interpolator(klin)
+        pklin = pk_interpolator_dd(klin)
         k0 = 1e-3
-        f0 = (fo.pk_interpolator(of='theta_cb').to_1d(z=z_pk)(k0) / fo.pk_interpolator(of='delta_cb').to_1d(z=z_pk)(k0))**0.5
+        f0 = (pk_interpolator_tt(k0) / pk_interpolator_dd(k0))**0.5
         from cosmoprimo import PowerSpectrumBAOFilter
-        filter = PowerSpectrumBAOFilter(pk_interpolator, engine='bspline', cosmo=cosmo, cosmo_fid=cosmo)
+        filter = PowerSpectrumBAOFilter(pk_interpolator_dd, engine='bspline', cosmo=cosmo, cosmo_fid=cosmo)
         pknow = filter.smooth_pk_interpolator()(klin)
 
         omega_b, omega_cdm, omega_ncdm, h = cosmo['omega_b'], cosmo['omega_cdm'], cosmo['omega_ncdm_tot'], cosmo['h']
@@ -49,7 +50,7 @@ def test_folps():
         print('=' * 20)
         from folpsax import get_mmatrices, get_non_linear, get_rsd_pkell
         mmatrices = get_mmatrices()
-        kwargs = {'z': z_pk, 'fnu': cosmo['Omega_ncdm_tot'] / cosmo['Omega_m'], 'Omega_m': cosmo['Omega_m'], 'h': cosmo['h']}
+        kwargs = {'z': z_pk, 'fnu': cosmo['Omega_ncdm_tot'] / cosmo['Omega_m'], 'Omega_m': cosmo['Omega_m'], 'h': cosmo['h'], 'Nnu': cosmo['N_ncdm'], 'Neff': cosmo['N_eff']}
         t0 = time.time()
         table, table_now = get_non_linear(klin, pklin, mmatrices, pknow=pknow, kminout=0.001, kmaxout=0.5, nk=120, kernels='fk', **kwargs)
         print([float(np.mean(a)) for a in FOLPS.TableOut_NW])
@@ -59,10 +60,21 @@ def test_folps():
         poles = get_rsd_pkell(k, qpar, qper, pars, table, table_now, nmu=6, ells=(0, 2, 4))
         print(time.time() - t0)
 
+        kwargs = {'pkttlin': pk_interpolator_tt(klin)}
+        t0 = time.time()
+        table, table_now = get_non_linear(klin, pklin, mmatrices, pknow=pknow, kminout=0.001, kmaxout=0.5, nk=120, kernels='fk', **kwargs)
+        print([float(np.mean(a)) for a in FOLPS.TableOut_NW])
+        print([float(np.mean(a)) for a in table_now])
+        #print(table[-2] / FOLPS.f0)
+        qpar, qper = 1., 1.
+        poles_fk = get_rsd_pkell(k, qpar, qper, pars, table, table_now, nmu=6, ells=(0, 2, 4))
+        print(time.time() - t0)
+
         ax = plt.gca()
         for ill, ell in enumerate((0, 2, 4)):
             ax.plot(k, k * ref[ill], color='C{:d}'.format(ill), ls='--')
             ax.plot(k, k * poles[ill], color='C{:d}'.format(ill), ls='-', label=r'$\ell = {:d}$'.format(ell))
+            ax.plot(k, k * poles_fk[ill], color='C{:d}'.format(ill), ls=':')
         ax.set_xlim([k[0], k[-1]])
         ax.grid(True)
         ax.legend()
@@ -95,7 +107,7 @@ def test_autodiff():
 
     cosmo = DESI()
     fo = cosmo.get_fourier()
-    pk_interpolator = fo.pk_interpolator().to_1d(z=z)
+    pk_interpolator = fo.pk_interpolator(of='theta_cb').to_1d(z=z)
     klin = np.geomspace(1e-5, 10., 1000)
     pklin = pk_interpolator(klin)
     k0 = 1e-3
